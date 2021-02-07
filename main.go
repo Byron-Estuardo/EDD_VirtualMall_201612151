@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -24,12 +26,35 @@ var tasks = allTask{
 	},
 }
 
+func createTask(w http.ResponseWriter, r *http.Request) {
+	var newTask task
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "insert a valid task")
+	}
+	//se asigna a newTask el valor reqBody
+	json.Unmarshal(reqBody, &newTask)
+	//Crea el ID de la nueva tarea
+	newTask.ID = len(tasks) + 1
+	tasks = append(tasks, newTask)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newTask)
+}
+
+func getTasks(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tasks)
+}
+
 func indexRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to my perro api")
+	fmt.Fprintf(w, "Welcome to my prueba api")
 }
 
 func main() {
+	//CompileDaemon -command="EDD_VirtualMall_201612151.exe"
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", indexRoute)
+	router.HandleFunc("/tasks", getTasks)
 	log.Fatal(http.ListenAndServe(":3000", router))
 }
