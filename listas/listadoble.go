@@ -53,3 +53,28 @@ func (pos *Lista) BuscarTienda(tienda string) *Nodo {
 	}
 	return aux
 }
+
+func (pos *Lista) Eliminar(nodoaeliminar *Nodo) {
+	aux := nodoaeliminar
+	if aux != nil {
+
+		if pos.Primero == aux {
+			//Esta al inicio
+			pos.Primero = aux.Siguiente
+			aux.Siguiente.Anterior = nil
+			aux.Siguiente = nil
+		} else if pos.Ultimo == aux {
+			//Esta al final
+			pos.Ultimo = aux.Anterior
+			aux.Anterior.Siguiente = nil
+			aux.Anterior = nil
+		} else {
+			aux.Anterior.Siguiente = aux.Siguiente
+			aux.Siguiente.Anterior = aux.Anterior
+			aux.Anterior = nil
+			aux.Siguiente = nil
+		}
+		pos.Tamano--
+
+	}
+}

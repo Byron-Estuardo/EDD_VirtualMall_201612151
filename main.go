@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"./listas"
 
@@ -140,7 +141,7 @@ func tiendaEspecifica(w http.ResponseWriter, r *http.Request) {
 	//Posicion por medio de fórmula
 	posicion = ((ind*Columnas + depa) * Profundidad) + (calificaciont - 1)
 
-	//Valores para generarl el Json de respuesta
+	//Valores para generar el Json de respuesta
 	var NombreReal string
 	var DescripcionReal string
 	var ContactoReal string
@@ -159,12 +160,46 @@ func tiendaEspecifica(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func eliminarPosicion(w http.ResponseWriter, r *http.Request) {
-	//Elimina una posicion especifica ingresada
-}
-
 func eliminar(w http.ResponseWriter, r *http.Request) {
 	//Elimina la tienda que se indica
+	var tiendaingresada buscarTienda
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Error en los datos ingresado, vuelva a intentarlo")
+	}
+	w.WriteHeader(http.StatusFound)
+	err2 := json.Unmarshal(reqBody, &tiendaingresada)
+	if err2 != nil {
+		fmt.Fprintf(w, "Error en el Unmarshal")
+	}
+	nombreR := tiendaingresada.Nombre
+	departamentoR := tiendaingresada.Departamento
+	calificacionR := tiendaingresada.Calificacion
+	var ind, depa, posicion int
+	letraInicial := nombreR[0]
+	//Ciclo de letras guardadas del Json para guardar Indice
+	for i := 0; i < len(Letras); i++ {
+		if string(letraInicial) == Letras[i] {
+			ind = i
+		}
+	}
+	for i := 0; i < len(Depa); i++ {
+		if departamentoR == Depa[i] {
+			depa = i
+		}
+	}
+	//Posicion por medio de fórmula
+	posicion = ((ind*Columnas + depa) * Profundidad) + (calificacionR - 1)
+	nodoencontrado := VectorLinealizado[posicion].BuscarTienda(nombreR)
+	VectorLinealizado[posicion].Eliminar(nodoencontrado)
+	fmt.Fprintf(w, "Tienda: "+nombreR+" eliminado de la lista en la posicion del vector: "+strconv.Itoa(posicion))
+}
+
+func eliminarPosicion(w http.ResponseWriter, r *http.Request) {
+	//Elimina una posicion especifica ingresada
+	//vars := mux.Vars(r)
+	//b, _ := strconv.Atoi(vars["numero"])
+
 }
 
 func guardar(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +218,7 @@ func main() {
 	router.HandleFunc("/getArreglo", getArreglo).Methods("GET")
 	router.HandleFunc("/TiendaEspecifica", tiendaEspecifica).Methods("POST") //Hecho
 	router.HandleFunc("/id/{numero}", eliminarPosicion).Methods("GET")       //Trabajando
-	router.HandleFunc("/Eliminar", eliminar).Methods("DELETE")
+	router.HandleFunc("/Eliminar", eliminar).Methods("DELETE")               //Trabajando
 	router.HandleFunc("/Guardar", guardar).Methods("GET")
 	log.Fatal(http.ListenAndServe(":3000", router))
 }
