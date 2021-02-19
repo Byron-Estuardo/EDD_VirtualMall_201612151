@@ -1,51 +1,55 @@
 package listas
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Nodo struct {
-	Origen    string
-	Destino   string
-	Mensajes  []string
-	Siguiente *Nodo
-	Anterior  *Nodo
+	Nombre       string
+	Descripcion  string
+	Contacto     string
+	Calificacion int
+	Indice       string
+	Departamento string
+	Siguiente    *Nodo
+	Anterior     *Nodo
 }
 
 type Lista struct {
-	primero, ultimo *Nodo
+	Primero, Ultimo *Nodo
+	Tamano          int
 }
 
 func NuevaLista() *Lista {
-	return &Lista{nil, nil}
+	return &Lista{nil, nil, 0}
 }
 
-func (this *Lista) Insertar(nuevo *Nodo) {
-	if this.primero == nil {
-		this.primero = nuevo
-		this.ultimo = nuevo
+func (pos *Lista) Insertar(nuevo *Nodo) {
+	if pos.Primero == nil {
+		pos.Primero = nuevo
+		pos.Ultimo = nuevo
 	} else {
-		this.ultimo.Siguiente = nuevo
-		nuevo.Anterior = this.ultimo
-		this.ultimo = nuevo
+		pos.Ultimo.Siguiente = nuevo
+		nuevo.Anterior = pos.Ultimo
+		pos.Ultimo = nuevo
 	}
+	pos.Tamano++
 }
 
-func (this *Nodo) To_string() string {
-	return "Nombre: " + this.Origen + " Destino: " + this.Destino
-}
-
-func (this *Lista) To_string() string {
-	var cadena string
-	aux := this.primero
+func (pos *Lista) Imprimir() {
+	aux := pos.Primero
 	for aux != nil {
-		cadena += aux.To_string() + "\n"
+		fmt.Print(aux.Nombre + "\n")
 		aux = aux.Siguiente
 	}
-	return cadena
 }
 
-func (this *Lista) Imprimir() {
-	fmt.Println("Lista ---------------")
-	fmt.Println(this.To_string())
+func (pos *Lista) BuscarTienda(tienda string) *Nodo {
+	aux := pos.Primero
+	for aux != nil {
+		if aux.Nombre == tienda {
+			fmt.Println("Se encontró el nodo: ", aux)
+			return aux
+		}
+		aux = aux.Siguiente
+	}
+	return aux
 }
