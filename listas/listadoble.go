@@ -88,13 +88,13 @@ type TiendasG struct {
 	Calificacion byte   `json:Calificacion`
 }
 
-func (pos *Lista) BuscarTiendas(p int) string {
+func (pos *Lista) BuscarTiendas(p string) string {
 	aux := pos.Primero
 	var codigo string
 	if aux == nil {
 		codigo = "Vacia"
 	} else {
-		codigo = "{\"Nombre\":\"" + strconv.Itoa(p) + "\",\"Tiendas\": ["
+		codigo = "{\"Nombre\":\"" + p + "\",\"Tiendas\": ["
 		for aux != nil {
 			codigo += "{\"Nombre\":\"" + aux.Nombre + "\","
 			codigo += "\"Descripcion\":\"" + aux.Descripcion + "\","
@@ -107,6 +107,23 @@ func (pos *Lista) BuscarTiendas(p int) string {
 			aux = aux.Siguiente
 		}
 		codigo += "]}"
+	}
+	return codigo
+}
+
+func (pos *Lista) Guardartiendas(indice string, departamento string) string {
+	aux := pos.Primero
+	var codigo string = ""
+	for aux != nil {
+		if indice == aux.Indice {
+			if departamento == aux.Departamento {
+				codigo += "\n{\n\"Nombre\":\"" + aux.Nombre + "\",\n"
+				codigo += "\"Descripcion\":\"" + aux.Descripcion + "\",\n"
+				codigo += "\"Contacto\":\"" + aux.Contacto + "\",\n"
+				codigo += "\"Calificacion\":" + strconv.Itoa(aux.Calificacion) + "\n},"
+			}
+		}
+		aux = aux.Siguiente
 	}
 	return codigo
 }

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"./listas"
 
@@ -200,13 +201,18 @@ func mostrarI(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var tienda DepartamentosG
 	p, _ := strconv.Atoi(vars["numero"])
-	arreglo := VectorLinealizado[p].BuscarTiendas(p)
+	arreglo := VectorLinealizado[p].BuscarTiendas(strconv.Itoa(p))
 	if arreglo != "Vacia" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusFound)
 		codigo := []byte(arreglo)
-		json.Unmarshal(codigo, &tienda)
-		json.NewEncoder(w).Encode(tienda)
+		err := json.Unmarshal(codigo, &tienda)
+		if err != nil {
+			fmt.Fprintf(w, "Error en el Unmarshal")
+		} else {
+			json.NewEncoder(w).Encode(tienda)
+		}
+
 	} else {
 		fmt.Fprintf(w, "No existe una lista en esa posicion")
 	}
@@ -214,6 +220,48 @@ func mostrarI(w http.ResponseWriter, r *http.Request) {
 
 func guardar(w http.ResponseWriter, r *http.Request) {
 	//Genera el Json con los datos guardados en las listas
+	var codigo string
+	ruta := "./Archivogenerado.json"
+	//Inicia el archivo
+	codigo = "{\t\t\n \"Datos\": [\n"
+	//Ciclo que recorre las letras guardadas al ingresar
+	for indice := 0; indice < len(Letras); indice++ {
+		codigo += "{\n\"Indice\":\"" + Letras[indice] + "\","
+		codigo += "\n\"Departamentos\":["
+
+		for depar := 0; depar < len(Depa); depar++ {
+			codigo += "\n{\n\"Nombre\":\"" + Depa[depar] + "\","
+			codigo += "\n\"Tiendas\":["
+			for posicion := 0; posicion < len(VectorLinealizado); posicion++ {
+				//Generar la parte para guardar las tiendas
+				tiendas := VectorLinealizado[posicion].Guardartiendas(Letras[indice], Depa[depar])
+				codigo += tiendas
+			}
+			codigo = strings.TrimSuffix(codigo, ",")
+			if depar == (len(Depa) - 1) {
+				codigo += "\n]\n}"
+			} else {
+				codigo += "\n]\n},"
+			}
+		}
+		codigo += "\n]\n"
+		if indice != (len(Letras) - 1) {
+			codigo += "},\n"
+		} else {
+			codigo += "}\n"
+		}
+	}
+	//Finaliza el archivo
+	codigo += "]\n}"
+	archivo := []byte(codigo)
+	var G General
+	json.Unmarshal(archivo, &G)
+	err2 := ioutil.WriteFile(ruta, archivo, 0644)
+	if err2 != nil {
+		fmt.Println("Error al generar el Json")
+	} else {
+		fmt.Fprintln(w, "Archivo generado con éxito")
+	}
 }
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
@@ -224,11 +272,11 @@ func main() {
 	//CompileDaemon -command="EDD_VirtualMall_201612151.exe"
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", indexRoute)
-	router.HandleFunc("/cargartienda", cargarTienda).Methods("POST") //Hecho
-	router.HandleFunc("/getArreglo", getArreglo).Methods("GET")
+	router.HandleFunc("/cargartienda", cargarTienda).Methods("POST")         //Hecho
+	router.HandleFunc("/getArreglo", getArreglo).Methods("GET")              //Trabajando
 	router.HandleFunc("/TiendaEspecifica", tiendaEspecifica).Methods("POST") //Hecho
 	router.HandleFunc("/id/{numero}", mostrarI).Methods("GET")               //Hecho
 	router.HandleFunc("/Eliminar", eliminar).Methods("DELETE")               //Hecho
-	router.HandleFunc("/Guardar", guardar).Methods("GET")
+	router.HandleFunc("/Guardar", guardar).Methods("GET")                    //Hecho
 	log.Fatal(http.ListenAndServe(":3000", router))
 }
