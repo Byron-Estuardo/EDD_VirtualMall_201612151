@@ -195,11 +195,21 @@ func eliminar(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Tienda: "+nombreR+" eliminado de la lista en la posicion del vector: "+strconv.Itoa(posicion))
 }
 
-func eliminarPosicion(w http.ResponseWriter, r *http.Request) {
-	//Elimina una posicion especifica ingresada
-	//vars := mux.Vars(r)
-	//b, _ := strconv.Atoi(vars["numero"])
-
+func mostrarI(w http.ResponseWriter, r *http.Request) {
+	//Muestra la lista de una posicion especifica ingresada
+	vars := mux.Vars(r)
+	var tienda DepartamentosG
+	p, _ := strconv.Atoi(vars["numero"])
+	arreglo := VectorLinealizado[p].BuscarTiendas(p)
+	if arreglo != "Vacia" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusFound)
+		codigo := []byte(arreglo)
+		json.Unmarshal(codigo, &tienda)
+		json.NewEncoder(w).Encode(tienda)
+	} else {
+		fmt.Fprintf(w, "No existe una lista en esa posicion")
+	}
 }
 
 func guardar(w http.ResponseWriter, r *http.Request) {
@@ -217,8 +227,8 @@ func main() {
 	router.HandleFunc("/cargartienda", cargarTienda).Methods("POST") //Hecho
 	router.HandleFunc("/getArreglo", getArreglo).Methods("GET")
 	router.HandleFunc("/TiendaEspecifica", tiendaEspecifica).Methods("POST") //Hecho
-	router.HandleFunc("/id/{numero}", eliminarPosicion).Methods("GET")       //Trabajando
-	router.HandleFunc("/Eliminar", eliminar).Methods("DELETE")               //Trabajando
+	router.HandleFunc("/id/{numero}", mostrarI).Methods("GET")               //Hecho
+	router.HandleFunc("/Eliminar", eliminar).Methods("DELETE")               //Hecho
 	router.HandleFunc("/Guardar", guardar).Methods("GET")
 	log.Fatal(http.ListenAndServe(":3000", router))
 }

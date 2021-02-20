@@ -1,6 +1,9 @@
 package listas
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Nodo struct {
 	Nombre       string
@@ -75,6 +78,35 @@ func (pos *Lista) Eliminar(nodoaeliminar *Nodo) {
 			aux.Siguiente = nil
 		}
 		pos.Tamano--
-
 	}
+}
+
+type TiendasG struct {
+	Nombre       string `json:Nombre`
+	Descripcion  string `json:Descripcion`
+	Contacto     string `json:Contacto`
+	Calificacion byte   `json:Calificacion`
+}
+
+func (pos *Lista) BuscarTiendas(p int) string {
+	aux := pos.Primero
+	var codigo string
+	if aux == nil {
+		codigo = "Vacia"
+	} else {
+		codigo = "{\"Nombre\":\"" + strconv.Itoa(p) + "\",\"Tiendas\": ["
+		for aux != nil {
+			codigo += "{\"Nombre\":\"" + aux.Nombre + "\","
+			codigo += "\"Descripcion\":\"" + aux.Descripcion + "\","
+			codigo += "\"Contacto\":\"" + aux.Contacto + "\","
+			if aux.Siguiente != nil {
+				codigo += "\"Calificacion\":" + strconv.Itoa(aux.Calificacion) + "},"
+			} else {
+				codigo += "\"Calificacion\":" + strconv.Itoa(aux.Calificacion) + "}"
+			}
+			aux = aux.Siguiente
+		}
+		codigo += "]}"
+	}
+	return codigo
 }
