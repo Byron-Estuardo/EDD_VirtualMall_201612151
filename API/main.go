@@ -9,19 +9,25 @@ import (
 	"strconv"
 	"strings"
 
+	"./arboles"
+
 	"./listas"
 
 	"github.com/gorilla/mux"
 )
 
 //Variables generales para el programa
-var VectorLinealizado []listas.Lista
+//Fase 2: Arbol AVL
+var arbolgeneral = arboles.NewArbol
+
+//Fase 1
+var VectorLinealizado []listas.Lista //Vector principal linealizado
 var Profundidad int
 var Columnas int
 
 //Variables que guardan las letras y departamentos del Json
-var Letras []string
-var Depa []string
+var Letras []string //Letras que se agregaron
+var Depa []string   //Departamentos que se agregaron
 
 //Structs para leer los datos del Json
 type TiendasG struct {
@@ -29,6 +35,7 @@ type TiendasG struct {
 	Descripcion  string `json:Descripcion`
 	Contacto     string `json:Contacto`
 	Calificacion byte   `json:Calificacion`
+	Logo         string `json:Logo`
 }
 type DepartamentosG struct {
 	Nombre  string     `json:Nombre`
@@ -80,10 +87,11 @@ func OrdenamientoRM(todosdatos General) {
 				Rcalificacion := todosdatos.Datos[i].Departamentos[j].Tiendas[w].Calificacion
 				Rindice := todosdatos.Datos[i].Indice
 				Rdepartamento := todosdatos.Datos[i].Departamentos[j].Nombre
+				Rlogo := todosdatos.Datos[i].Departamentos[j].Tiendas[w].Logo
 				//Usando la fórmula para colocar la tienda
 				segundo := int(i*columnas + j)
 				posicion := (segundo * profundidad) + (int(Rcalificacion) - 1)
-				contenido := listas.Nodo{Rnombre, Rdescripcion, Rcontacto, int(Rcalificacion), string(Rindice), string(Rdepartamento), nil, nil}
+				contenido := listas.Nodo{Rnombre, Rdescripcion, Rcontacto, int(Rcalificacion), string(Rindice), string(Rdepartamento), Rlogo, nil, nil, nil}
 				VectorLinealizado[posicion].Insertar(&contenido)
 			}
 			Depa[j] = string(todosdatos.Datos[i].Departamentos[j].Nombre)
@@ -143,18 +151,22 @@ func tiendaEspecifica(w http.ResponseWriter, r *http.Request) {
 	posicion = ((ind*Columnas + depa) * Profundidad) + (calificaciont - 1)
 
 	//Valores para generar el Json de respuesta
+	w.Header().Set("Content-Type", "application/json")
+
 	var NombreReal string
 	var DescripcionReal string
 	var ContactoReal string
 	var CalificacionReal int
+	var LogoReal string
 	nbuscar := VectorLinealizado[posicion].BuscarTienda(nombret)
 	if nbuscar != nil {
 		NombreReal = nbuscar.Nombre
 		DescripcionReal = nbuscar.Descripcion
 		ContactoReal = nbuscar.Contacto
 		CalificacionReal = nbuscar.Calificacion
+		LogoReal = nbuscar.Logo
 		//Arreglo para Encode
-		a := TiendasG{NombreReal, DescripcionReal, ContactoReal, byte(CalificacionReal)}
+		a := TiendasG{NombreReal, DescripcionReal, ContactoReal, byte(CalificacionReal), LogoReal}
 		json.NewEncoder(w).Encode(a)
 	} else {
 		fmt.Fprintf(w, "Tienda no encontrada")
@@ -268,15 +280,40 @@ func indexRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to my API")
 }
 
+func mostrartiendas(w http.ResponseWriter, r *http.Request) {
+	var tienda DepartamentosG
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusFound)
+	var n int
+	n = 0
+	var n1 int
+	n1 = 0
+	for n = 0; n < len(VectorLinealizado); n++ {
+		arreglo := VectorLinealizado[n].BuscarTiendas(strconv.Itoa(n))
+		if arreglo != "Vacia" && n1 == 0 {
+			n1 = 1
+			codigo := []byte(arreglo)
+			err := json.Unmarshal(codigo, &tienda)
+			if err != nil {
+				fmt.Fprintf(w, "Error en el Unmarshal")
+			} else {
+				json.NewEncoder(w).Encode(tienda)
+			}
+		}
+	}
+
+}
+
 func main() {
 	//CompileDaemon -command="EDD_VirtualMall_201612151.exe"
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", indexRoute)
-	router.HandleFunc("/cargartienda", cargarTienda).Methods("POST")         //Hecho
-	router.HandleFunc("/getArreglo", getArreglo).Methods("GET")              //Trabajando
-	router.HandleFunc("/TiendaEspecifica", tiendaEspecifica).Methods("POST") //Hecho
-	router.HandleFunc("/id/{numero}", mostrarI).Methods("GET")               //Hecho
-	router.HandleFunc("/Eliminar", eliminar).Methods("DELETE")               //Hecho
-	router.HandleFunc("/Guardar", guardar).Methods("GET")                    //Hecho
-	log.Fatal(http.ListenAndServe(":3000", router))
+	router.HandleFunc("/cargartienda", cargarTienda).Methods("POST")        //Hecho
+	router.HandleFunc("/getArreglo", getArreglo).Methods("GET")             //Trabajando
+	router.HandleFunc("/TiendaEspecifica", tiendaEspecifica).Methods("GET") //Hecho
+	router.HandleFunc("/id/{numero}", mostrarI).Methods("GET")              //Hecho
+	router.HandleFunc("/Eliminar", eliminar).Methods("DELETE")              //Hecho
+	router.HandleFunc("/Guardar", guardar).Methods("GET")                   //Hecho
+	router.HandleFunc("/obtenertiendas", mostrartiendas).Methods("GET")
+	log.Fatal(http.ListenAndServe(":5000", router))
 }

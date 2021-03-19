@@ -5,6 +5,22 @@ import (
 	"strconv"
 )
 
+//Estructura del Arbol AVL
+type NodoAVL struct {
+	Codigo      int
+	Nombre      string
+	Descripción string
+	Precio      int
+	Cantidad    int
+	Imagen      string
+	Factor      int
+	Izquierda   *NodoAVL
+	Derecha     *NodoAVL
+}
+type Arbol struct {
+	raiz *NodoAVL
+}
+
 type Nodo struct {
 	Nombre       string
 	Descripcion  string
@@ -12,10 +28,11 @@ type Nodo struct {
 	Calificacion int
 	Indice       string
 	Departamento string
+	Logo         string
+	ArbolAVL     *Arbol
 	Siguiente    *Nodo
 	Anterior     *Nodo
 }
-
 type Lista struct {
 	Primero, Ultimo *Nodo
 	Tamano          int
@@ -86,6 +103,7 @@ type TiendasG struct {
 	Descripcion  string `json:Descripcion`
 	Contacto     string `json:Contacto`
 	Calificacion byte   `json:Calificacion`
+	Logo         string `json:Logo`
 }
 
 func (pos *Lista) BuscarTiendas(p string) string {
@@ -99,10 +117,11 @@ func (pos *Lista) BuscarTiendas(p string) string {
 			codigo += "{\"Nombre\":\"" + aux.Nombre + "\","
 			codigo += "\"Descripcion\":\"" + aux.Descripcion + "\","
 			codigo += "\"Contacto\":\"" + aux.Contacto + "\","
+			codigo += "\"Calificacion\":\"" + strconv.Itoa(aux.Calificacion) + "\","
 			if aux.Siguiente != nil {
-				codigo += "\"Calificacion\":" + strconv.Itoa(aux.Calificacion) + "},"
+				codigo += "\"Logo\":" + aux.Logo + "},"
 			} else {
-				codigo += "\"Calificacion\":" + strconv.Itoa(aux.Calificacion) + "}"
+				codigo += "\"Logo\":" + aux.Logo + "}"
 			}
 			aux = aux.Siguiente
 		}
@@ -120,7 +139,8 @@ func (pos *Lista) Guardartiendas(indice string, departamento string) string {
 				codigo += "\n{\n\"Nombre\":\"" + aux.Nombre + "\",\n"
 				codigo += "\"Descripcion\":\"" + aux.Descripcion + "\",\n"
 				codigo += "\"Contacto\":\"" + aux.Contacto + "\",\n"
-				codigo += "\"Calificacion\":" + strconv.Itoa(aux.Calificacion) + "\n},"
+				codigo += "\"Calificacion\":" + strconv.Itoa(aux.Calificacion) + "\",\n"
+				codigo += "\"Logo\":\"" + aux.Logo + "\",\n},"
 			}
 		}
 		aux = aux.Siguiente

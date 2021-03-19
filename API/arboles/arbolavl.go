@@ -1,10 +1,15 @@
 package arboles
 
 type Nodo struct {
-	Valor     int
-	Factor    int
-	Izquierda *Nodo
-	Derecha   *Nodo
+	Codigo      int
+	Nombre      string
+	Descripción string
+	Precio      int
+	Cantidad    int
+	Imagen      string
+	Factor      int
+	Izquierda   *Nodo
+	Derecha     *Nodo
 }
 
 type Arbol struct {
@@ -15,8 +20,8 @@ func NewArbol() *Arbol {
 	return &Arbol{nil}
 }
 
-func NewNodo(valor int) *Nodo {
-	return &Nodo{valor, 0, nil, nil}
+func NewNodo(codigo int) *Nodo {
+	return &Nodo{codigo, "", "", 0, 0, "", 0, nil, nil}
 }
 
 func rotacionII(n *Nodo, n1 *Nodo) *Nodo {
@@ -96,7 +101,7 @@ func insertar(raiz *Nodo, valor int, hc *bool) *Nodo {
 	if raiz == nil {
 		raiz = NewNodo(valor)
 		*hc = true
-	} else if valor < raiz.Valor {
+	} else if valor < raiz.Codigo {
 		izq := insertar(raiz.Izquierda, valor, hc)
 		raiz.Izquierda = izq
 		if *hc {
@@ -118,7 +123,7 @@ func insertar(raiz *Nodo, valor int, hc *bool) *Nodo {
 				*hc = false
 			}
 		}
-	} else if valor > raiz.Valor {
+	} else if valor > raiz.Codigo {
 		der := insertar(raiz.Derecha, valor, hc)
 		raiz.Derecha = der
 		if *hc {
